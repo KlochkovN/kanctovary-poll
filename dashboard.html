@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Результаты опроса — live</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f4f5f7;
+    padding: 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 32px;
+    max-width: 560px;
+    width: 100%;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+  h1 {
+    font-size: 18px;
+    line-height: 1.4;
+    color: #1a1a1a;
+    margin: 0 0 8px;
+    font-weight: 600;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #888;
+    margin: 0 0 32px;
+  }
+  .total {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
+  }
+  .total b { color: #1a1a1a; }
+  .chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 40px;
+    height: 260px;
+    padding: 0 20px;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  .bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+  }
+  .bar {
+    width: 100%;
+    max-width: 120px;
+    border-radius: 8px 8px 0 0;
+    transition: height 0.6s ease;
+    min-height: 2px;
+  }
+  .bar-yes { background: linear-gradient(180deg, #2ecc71, #27ae60); }
+  .bar-no { background: linear-gradient(180deg, #e74c3c, #c0392b); }
+  .bar-label {
+    margin-top: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #444;
+  }
+  .live {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #999;
+    margin-top: 28px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2ecc71;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+  .err { color: #e74c3c; font-size: 13px; margin-top: 12px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Ознакомились ли Вы с коммуникацией «Новые правила получения канцтоваров»?</h1>
+    <p class="subtitle">Результаты опроса в реальном времени</p>
+    <div class="total">Всего ответов: <b id="total">0</b></div>
+    <div class="chart">
+      <div class="bar-wrap">
+        <div class="bar-value" id="val-yes">0</div>
+        <div class="bar bar-yes" id="bar-yes" style="height:2px"></div>
+        <div class="bar-label">Да</div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-value" id="val-no">0</div>
+        <div class="bar bar-no" id="bar-no" style="height:2px"></div>
+        <div class="bar-label">Нет</div>
+      </div>
+    </div>
+    <div class="live"><span class="dot"></span> Обновляется автоматически</div>
+    <div class="err" id="err"></div>
+  </div>
+
+<script>
+  const SUPABASE_URL = "https://txyrnvngbfpeixizdglj.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4eXJudm5nYmZwZWl4aXpkZ2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzMDk4MjgsImV4cCI6MjA5ODg4NTgyOH0.btEBWPw1RUKqs5iC_4fHtCQuJnpknJChk4n8-gaPpkE";
+  const MAX_BAR_HEIGHT = 240;
+
+  async function fetchResults() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/poll_results?select=answer,votes`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const rows = await res.json();
+      let yes = 0, no = 0;
+      rows.forEach(r => {
+        if (r.answer === 'yes') yes = r.votes;
+        if (r.answer === 'no') no = r.votes;
+      });
+      render(yes, no);
+      document.getElementById('err').textContent = '';
+    } catch (e) {
+      document.getElementById('err').textContent = 'Не удалось обновить данные.';
+    }
+  }
+
+  function render(yes, no) {
+    const total = yes + no;
+    const max = Math.max(yes, no, 1);
+    document.getElementById('total').textContent = total;
+    document.getElementById('val-yes').textContent = yes;
+    document.getElementById('val-no').textContent = no;
+    document.getElementById('bar-yes').style.height = Math.max(2, (yes / max) * MAX_BAR_HEIGHT) + 'px';
+    document.getElementById('bar-no').style.height = Math.max(2, (no / max) * MAX_BAR_HEIGHT) + 'px';
+  }
+
+  fetchResults();
+  setInterval(fetchResults, 3000);
+</script>
+</body>
+</html>

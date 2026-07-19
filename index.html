@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Опрос</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f4f5f7;
+    padding: 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 32px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    text-align: center;
+  }
+  h1 {
+    font-size: 20px;
+    line-height: 1.4;
+    color: #1a1a1a;
+    margin: 0 0 32px;
+    font-weight: 600;
+  }
+  .buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+  button {
+    flex: 1;
+    padding: 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .btn-yes { background: #2ecc71; color: #fff; }
+  .btn-no { background: #e74c3c; color: #fff; }
+  .btn-yes:hover:not(:disabled) { background: #27ae60; }
+  .btn-no:hover:not(:disabled) { background: #c0392b; }
+  .status {
+    margin-top: 24px;
+    font-size: 15px;
+    color: #555;
+    min-height: 20px;
+  }
+  .status.ok { color: #2ecc71; font-weight: 600; }
+  .status.err { color: #e74c3c; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Ознакомились ли Вы с коммуникацией «Новые правила получения канцтоваров»?</h1>
+    <div class="buttons" id="buttons">
+      <button class="btn-yes" onclick="vote('yes')">Да</button>
+      <button class="btn-no" onclick="vote('no')">Нет</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+<script>
+  const SUPABASE_URL = "https://txyrnvngbfpeixizdglj.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4eXJudm5nYmZwZWl4aXpkZ2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzMDk4MjgsImV4cCI6MjA5ODg4NTgyOH0.btEBWPw1RUKqs5iC_4fHtCQuJnpknJChk4n8-gaPpkE";
+
+  const statusEl = document.getElementById('status');
+  const buttonsEl = document.getElementById('buttons');
+
+  function disableButtons() {
+    buttonsEl.querySelectorAll('button').forEach(b => b.disabled = true);
+  }
+
+  async function vote(answer) {
+    disableButtons();
+    statusEl.textContent = 'Отправка...';
+    statusEl.className = 'status';
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/poll_votes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ answer })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      statusEl.textContent = 'Спасибо, ваш ответ принят!';
+      statusEl.className = 'status ok';
+    } catch (e) {
+      statusEl.textContent = 'Ошибка отправки. Попробуйте ещё раз.';
+      statusEl.className = 'status err';
+      buttonsEl.querySelectorAll('button').forEach(b => b.disabled = false);
+    }
+  }
+</script>
+</body>
+</html>
