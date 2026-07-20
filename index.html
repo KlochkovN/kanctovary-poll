@@ -74,8 +74,7 @@
   </div>
 
 <script>
-  const SUPABASE_URL = "https://txyrnvngbfpeixizdglj.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4eXJudm5nYmZwZWl4aXpkZ2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzMDk4MjgsImV4cCI6MjA5ODg4NTgyOH0.btEBWPw1RUKqs5iC_4fHtCQuJnpknJChk4n8-gaPpkE";
+  const API_URL = "https://functions.yandexcloud.net/d4e8uap7iqai8q4cm4h2";
 
   const statusEl = document.getElementById('status');
   const buttonsEl = document.getElementById('buttons');
@@ -89,14 +88,9 @@
     statusEl.textContent = 'Отправка...';
     statusEl.className = 'status';
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/poll_votes`, {
+      const res = await fetch(API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Prefer': 'return=minimal'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ answer })
       });
       if (!res.ok) throw new Error(await res.text());

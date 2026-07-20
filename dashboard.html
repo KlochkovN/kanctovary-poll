@@ -124,18 +124,12 @@
   </div>
 
 <script>
-  const SUPABASE_URL = "https://txyrnvngbfpeixizdglj.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4eXJudm5nYmZwZWl4aXpkZ2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzMDk4MjgsImV4cCI6MjA5ODg4NTgyOH0.btEBWPw1RUKqs5iC_4fHtCQuJnpknJChk4n8-gaPpkE";
+  const API_URL = "https://functions.yandexcloud.net/d4e8uap7iqai8q4cm4h2";
   const MAX_BAR_HEIGHT = 240;
 
   async function fetchResults() {
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/poll_results?select=answer,votes`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
+      const res = await fetch(API_URL);
       if (!res.ok) throw new Error(await res.text());
       const rows = await res.json();
       let yes = 0, no = 0;
